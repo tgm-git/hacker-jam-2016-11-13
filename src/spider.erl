@@ -1,0 +1,2 @@
+-module(spider).
+-compile(export_all).
