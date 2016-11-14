@@ -9,5 +9,5 @@ weed_out(_Data) ->
 
 listen() ->
     receive
-        {data, _Data} -> ok
+        {page, _URL} -> ok
     end.
