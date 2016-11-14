@@ -1,27 +1,39 @@
 -module(spider).
 -compile(export_all).
 
-init(Page, Query, Lifetime, Pid) ->
-    spawn(?MODULE, search, [Page, Query, Lifetime, Pid]).
+% keeps track of the constant context stuff,
+% this includes the current query, and the listener and repo PIDs
+% move this to .hrl file later
+-record(context, {query, listener, repo}).
 
+% added for convenience so it can be called without making the struct
+init(Page, Lifetime, Query, Listener, Repo) ->
+    Context = #context{query = Query, listener = Listener, repo = Repo},
+    init(Page, Lifetime, Context).
+
+init(Page, Lifetime, Context) ->
+    spawn(?MODULE, search, [Page, Lifetime, Context]).
+
+% TODO: Implement this
 get_page(_URL) ->
     "<!DOCTYPE html><html><head></head><body></body></html>".
 
-search(_URL, _Query, 0, _Pid) -> 
+search(_URL, 0, _Context) -> 
     do_nothing;
-search(URL, Query, Lifetime, Pid) ->
+search(URL, Lifetime, Context = #context{query = Query, listener = Pid, repo = RPid}) ->
     PageData = get_page(URL),
     {Hits, Hyperlinks} = page:eval(Query, PageData),
     if Hits =/= 0 -> Pid ! {page, URL} end,
 
     SpawnSpider = 
-        fun (Link) -> init(Link, Query, Lifetime - 1, Pid) end,
+        fun (Link) -> init(Link, Lifetime - 1, Context) end,
 
     % spawn a new spider for each link found
     lists:foreach(SpawnSpider, Hyperlinks),
     % spawns a new spider search on each new hyperlink
     ok.
 
+% TODO: Implement this
 check_links([], RelevantURLs)   -> RelevantURLs;
 check_links(URLs, RelevantURLs) -> ok.
 
