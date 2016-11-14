@@ -1,2 +1,2 @@
 -module(repo).
--epxort(something/2).
+-compile(export_all).
