@@ -1,10 +1,6 @@
 -module(spider).
 -compile(export_all).
-
-% keeps track of the constant context stuff,
-% this includes the current query, and the listener and repo PIDs
-% move this to .hrl file later
--record(context, {query, listener, repo}).
+-include("spider-context.hrl").
 
 % added for convenience so it can be called without making the struct
 init(Page, Lifetime, Query, Listener, Repo) ->
