@@ -36,18 +36,18 @@ search(URL, Lifetime, Context = #context{query = Query, listener = Pid, repo = R
 check_links(Urls, Context) -> check_links(Urls, [], Context).
 
 %% @doc sends a message to the link repository and checks if it exists
-%% if it doesn't, it'll be added to RelevantURLs, if does it won't.
-check_links([], RelevantURLs, _Context)   -> RelevantURLs;
-check_links(URLs, RelevantURLs, Context) -> 
+%% if it doesn't, it'll be added to Relevants, if does it won't.
+check_links([], Relevants, _Context)  -> Relevants;
+check_links(URLs, Relevants, Context) -> 
     [URLHead | URLTail] = URLs,
     Self = self(),
     %% make_ref is used to ensure the message is sent back
-    %% to the correct receiver
+    %% to the correct receiver by matching on the Ref
     Ref = make_ref(),
     Context#context.repo ! {Self, {find, URLHead, Ref}},
     receive
-        {hit, Ref}  -> check_links(URLTail, RelevantURLs)
-        {miss, Ref} -> check_links(URLTail, [URLHead | RelevantURLs]);
+        {hit,  Ref} -> check_links(URLTail, Relevants)
+        {miss, Ref} -> check_links(URLTail, [URLHead | Relevants]);
     after 2000 -> timeout
     end.
 
