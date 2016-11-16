@@ -7,30 +7,30 @@ init(Page, Lifetime, Query, Listener, Repo) ->
     Context = #context{query = Query, listener = Listener, repo = Repo},
     init(Page, Lifetime, Context).
 
-init(Page, Lifetime, Context) ->
+init(Page, Lifetime, Context) when is_record(Context, context) ->
     spawn(?MODULE, search, [Page, Lifetime, Context]).
 
 %% TODO: Implement this
 get_page(_URL) ->
     "<!DOCTYPE html><html><head></head><body></body></html>".
 
-search(_URL, 0, _Context) -> 
-    do_nothing;
-search(URL, Lifetime, Context = #context{query = Query, listener = Pid, repo = RPid}) ->
+search(_URL, 0, _Con) -> die;
+search(URL, Life, Con) when is_record(Con, context) ->
     PageData = get_page(URL),
-    {Hits, Hyperlinks} = page:eval(Query, PageData),
-    if Hits =/= 0 -> Pid ! {page, URL} end,
+    {Hits, Hyperlinks} = page:eval(Con#context.query, PageData),
+    if Hits =/= 0 -> Con#context.listener ! {page, URL} end,
 
     SpawnSpider = 
-        fun (Link) -> init(Link, Lifetime - 1, Context) end,
+        fun (Link) -> init(Link, Life - 1, Con) end,
 
     %% filters out all the links that have already been visited
-    FilteredLinks = check_links(Hyperlinks, Context),
+    FilteredLinks = check_links(Hyperlinks, Con), % TODO: add timeout check
 
     %% spawn a new spider for each link found
     lists:foreach(SpawnSpider, FilteredLinks),
+
     %% add the new the links to the repo
-    lists:foreach(fun(Link) -> RPid ! {store, Link} end, FilteredLinks),
+    store_links(FilteredLinks, Con),
     ok.
 
 check_links(Urls, Context) -> check_links(Urls, [], Context).
