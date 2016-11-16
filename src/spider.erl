@@ -2,7 +2,7 @@
 -compile(export_all).
 -include("spider-context.hrl").
 
-% added for convenience so it can be called without making the struct
+%% added for convenience so it can be called without making the struct
 init(Page, Lifetime, Query, Listener, Repo) ->
     Context = #context{query = Query, listener = Listener, repo = Repo},
     init(Page, Lifetime, Context).
@@ -10,7 +10,7 @@ init(Page, Lifetime, Query, Listener, Repo) ->
 init(Page, Lifetime, Context) ->
     spawn(?MODULE, search, [Page, Lifetime, Context]).
 
-% TODO: Implement this
+%% TODO: Implement this
 get_page(_URL) ->
     "<!DOCTYPE html><html><head></head><body></body></html>".
 
@@ -24,11 +24,13 @@ search(URL, Lifetime, Context = #context{query = Query, listener = Pid, repo = R
     SpawnSpider = 
         fun (Link) -> init(Link, Lifetime - 1, Context) end,
 
+    %% filters out all the links that have already been visited
     FilteredLinks = check_links(Hyperlinks, Context),
 
-    % spawn a new spider for each link found
+    %% spawn a new spider for each link found
     lists:foreach(SpawnSpider, FilteredLinks),
-    % spawns a new spider search on each new hyperlink
+    %% add the new the links to the repo
+    lists:foreach(fun(Link) -> RPid ! {store, Link} end, FilteredLinks),
     ok.
 
 check_links(Urls, Context) -> check_links(Urls, [], Context).
