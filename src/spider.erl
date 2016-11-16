@@ -24,14 +24,30 @@ search(URL, Lifetime, Context = #context{query = Query, listener = Pid, repo = R
     SpawnSpider = 
         fun (Link) -> init(Link, Lifetime - 1, Context) end,
 
+    FilteredLinks = check_links(Hyperlinks, Context),
+
     % spawn a new spider for each link found
-    lists:foreach(SpawnSpider, Hyperlinks),
+    lists:foreach(SpawnSpider, FilteredLinks),
     % spawns a new spider search on each new hyperlink
     ok.
 
-% TODO: Implement this
-check_links([], RelevantURLs)   -> RelevantURLs;
-check_links(URLs, RelevantURLs) -> ok.
+check_links(Urls, Context) -> check_links(Urls, [], Context).
+
+%% @doc sends a message to the link repository and checks if it exists
+%% if it doesn't, it'll be added to RelevantURLs, if does it won't.
+check_links([], RelevantURLs, _Context)   -> RelevantURLs;
+check_links(URLs, RelevantURLs, Context) -> 
+    [URLHead | URLTail] = URLs,
+    Self = self(),
+    %% make_ref is used to ensure the message is sent back
+    %% to the correct receiver
+    Ref = make_ref(),
+    Context#context.repo ! {Self, {find, URLHead, Ref}},
+    receive
+        {hit, Ref}  -> check_links(URLTail, RelevantURLs)
+        {miss, Ref} -> check_links(URLTail, [URLHead | RelevantURLs]);
+    after 2000 -> timeout
+    end.
 
 %% @doc stores the sites visited so that a page isn't visited twice.
 link_repo([]) -> ok;
