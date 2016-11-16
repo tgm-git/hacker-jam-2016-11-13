@@ -50,10 +50,16 @@ check_links(URLs, RelevantURLs, Context) ->
     end.
 
 %% @doc stores the sites visited so that a page isn't visited twice.
-link_repo([]) -> ok;
-link_repo(_Data) ->
+link_repo(Links) ->
     receive
-        {find, _URL} -> ok;
-        {store, _URL} -> ok
+        {From, {find, URL, Ref}} ->             % synchronous message
+            case lists:member(URL, Links) of
+                true  -> From ! {hit,  Ref};
+                false -> From ! {miss, Ref}
+            end;
+        {store, URL} ->                         % asynchronous message
+            link_repo([URL | Links]);
+        terminate -> ok                         % termination message
+    after 2000 -> timeout
     end.
 
