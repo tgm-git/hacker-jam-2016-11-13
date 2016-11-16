@@ -67,10 +67,10 @@ link_repo(Links) ->
             case lists:member(URL, Links) of
                 true  -> From ! {hit,  Ref};
                 false -> From ! {miss, Ref}
-            end;
+            end,
+            link_repo(Links);
         {store, URL} ->                         % asynchronous message
             link_repo([URL | Links]);
         terminate -> ok                         % termination message
-    after 2000 -> timeout
     end.
 
