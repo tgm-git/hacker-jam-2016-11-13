@@ -51,7 +51,16 @@ check_links(URLs, RelevantURLs, Context) ->
     after 2000 -> timeout
     end.
 
+%% @doc goes through a list of links, sending them to the repo.
+store_links(Links, C) when is_record(C, context) ->
+    Callback = 
+        fun(Link) -> C#context.repo ! {store, Link} end,
+    lists:foreach(Callback, Links),
+    ok.
+
 %% @doc stores the sites visited so that a page isn't visited twice.
+%% recursive calls to itself ensures that it stays alive, 
+%% while acting like a mutable store
 link_repo(Links) ->
     receive
         {From, {find, URL, Ref}} ->             % synchronous message
