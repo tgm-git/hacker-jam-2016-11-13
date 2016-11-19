@@ -10,7 +10,7 @@ init(Page, Lifetime, Query, Listener, Repo) ->
 init(Page, Lifetime, Context) when is_record(Context, context) ->
     spawn(?MODULE, search, [Page, Lifetime, Context]).
 
-%% TODO: Implement this
+%% @TODO Implement this
 get_page(_URL) ->
     "<!DOCTYPE html><html><head></head><body></body></html>".
 
@@ -24,7 +24,7 @@ search(URL, Life, Con) when is_record(Con, context) ->
         fun (Link) -> init(Link, Life - 1, Con) end,
 
     %% filters out all the links that have already been visited
-    FilteredLinks = check_links(Hyperlinks, Con), % TODO: add timeout check
+    FilteredLinks = check_links(Hyperlinks, Con), %% @TODO add timeout check
 
     %% spawn a new spider for each link found
     lists:foreach(SpawnSpider, FilteredLinks),
@@ -61,6 +61,7 @@ store_links(Links, C) when is_record(C, context) ->
 %% @doc stores the sites visited so that a page isn't visited twice.
 %% recursive calls to itself ensures that it stays alive, 
 %% while acting like a mutable store
+%% @TODO Create CRUD messages
 link_repo(Links) ->
     receive
         {From, {find, URL, Ref}} ->             % synchronous message
