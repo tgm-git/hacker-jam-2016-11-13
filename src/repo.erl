@@ -41,7 +41,20 @@ handle_call({read, URL}, _From, Links) ->
         false -> {reply, miss}
     end.
 
-terminate(_Reason, _State) -> ok.
 code_change(_OldVsn, State, _Extra) -> 
     {ok, State}.
 
+terminate(normal, _State) -> ok;
+terminate(save, State) -> 
+    FileReadyState = lists:join("\n", State) ++ ["\n"],
+    case file:write_file("repository-dump.txt", FileReadyState) of
+        ok -> ok;
+        {error, badarg} ->
+            io:format("Couldn't dump the repository, bad format.~n"),
+            ok;                                 % Maybe change to throwing an error
+        {error, eacces} ->
+            io:format("Didn't have write-access to repository-dump.txt.~n"),
+            ok                                  % Same goes for this
+    end.
+                               
+    
