@@ -17,10 +17,10 @@ link_repo(Links) ->
             link_repo([URL | Links]);
         terminate -> ok                         % termination message
     end.
-init(_Args).
-handle_info(_Info, _State).
-handle_cast(_Request, _State).
-handle_call(_Request, _From, _State).
-code_change(_OldVsn, _State, _Extra).
-terminate(_Reason, _State).
+init(_Args) -> ignore.
+handle_info(_Info, _State) -> {noreply, _State}.
+handle_cast(_Request, _State) -> {noreply, _State}.
+handle_call(_Request, _From, _State) -> {noreply, _State}.
+code_change(_OldVsn, _State, _Extra) -> ok.
+terminate(_Reason, _State) -> ok.
 
