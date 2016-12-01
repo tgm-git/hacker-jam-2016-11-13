@@ -22,7 +22,7 @@ drop(Pid) ->
     gen_server:cast(Pid, drop_repo).
 
 %% GEN_SERVER CALLBACK FUNCTIONS
-init(_Args) -> ignore.
+init([]) -> {ok, []}.
 
 handle_info(_Info, _State) -> {noreply, _State}.
 
