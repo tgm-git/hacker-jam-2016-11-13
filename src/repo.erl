@@ -41,6 +41,7 @@ handle_call({read, URL}, _From, Links) ->
         false -> {reply, miss}
     end.
 
-code_change(_OldVsn, _State, _Extra) -> ok.
-
 terminate(_Reason, _State) -> ok.
+code_change(_OldVsn, State, _Extra) -> 
+    {ok, State}.
+
