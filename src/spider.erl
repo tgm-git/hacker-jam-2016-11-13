@@ -46,8 +46,8 @@ check_links(URLs, Relevants, Context) ->
     Ref = make_ref(),
     Context#context.repo ! {Self, {find, URLHead, Ref}},
     receive
-        {hit,  Ref} -> check_links(URLTail, Relevants)
-        {miss, Ref} -> check_links(URLTail, [URLHead | Relevants]);
+        {hit,  Ref} -> check_links(URLTail, Relevants);
+        {miss, Ref} -> check_links(URLTail, [URLHead | Relevants])
     after 2000 -> timeout
     end.
 
